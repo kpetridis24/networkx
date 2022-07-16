@@ -31,24 +31,26 @@ def get_labes(G1, G2):
 
 
 class TestVF2pp:
+    PT = "iso"
+
     def test_both_graphs_empty(self):
         G = nx.Graph()
         H = nx.Graph()
-        isomorphic, mapping = isomorphic_VF2pp(G, H, {}, {})
+        isomorphic, mapping = isomorphic_VF2pp(G, H, {}, {}, self.PT)
         assert isomorphic
         assert mapping == {}
 
     def test_first_graph_empty(self):
         G = nx.Graph()
         H = nx.Graph([(0, 1)])
-        isomorphic, mapping = isomorphic_VF2pp(G, H, {}, {})
+        isomorphic, mapping = isomorphic_VF2pp(G, H, {}, {}, self.PT)
         assert not isomorphic
         assert mapping is None
 
     def test_second_graph_empty(self):
         G = nx.Graph([(0, 1)])
         H = nx.Graph()
-        isomorphic, mapping = isomorphic_VF2pp(G, H, {}, {})
+        isomorphic, mapping = isomorphic_VF2pp(G, H, {}, {}, self.PT)
         assert not isomorphic
         assert mapping is None
 
@@ -65,7 +67,7 @@ class TestVF2pp:
             G1, G2 = assign_labels(G1, G2)
             l1, l2 = get_labes(G1, G2)
 
-            isomorphic, mapping = isomorphic_VF2pp(G1, G2, l1, l2)
+            isomorphic, mapping = isomorphic_VF2pp(G1, G2, l1, l2, self.PT)
             assert isomorphic
             assert len(set(mapping)) == G1.number_of_nodes()
 
@@ -91,7 +93,7 @@ class TestVF2pp:
         G1, G2 = assign_labels(G1, G2, mapped)
         l1, l2 = get_labes(G1, G2)
 
-        isomorphic, mapping = isomorphic_VF2pp(G1, G2, l1, l2)
+        isomorphic, mapping = isomorphic_VF2pp(G1, G2, l1, l2, self.PT)
         assert isomorphic
         assert mapping == mapped
 
@@ -104,7 +106,7 @@ class TestVF2pp:
             G1, G2 = assign_labels(G1, G2)
             l1, l2 = get_labes(G1, G2)
 
-            isomorphic, mapping = isomorphic_VF2pp(G1, G2, l1, l2)
+            isomorphic, mapping = isomorphic_VF2pp(G1, G2, l1, l2, self.PT)
             assert isomorphic
 
     def test_custom_graph2(self):

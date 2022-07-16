@@ -15,7 +15,7 @@ def check_feasibility(
     T1_out,
     T2,
     T2_out,
-    PT="ISO"
+    PT="iso"
 ):
     """Given a candidate pair of nodes u and v from G1 and G2 respectively, checks if it's feasible to extend the
     mapping, i.e. if u and v can be matched.
@@ -49,14 +49,18 @@ def check_feasibility(
         Ti_out contains all the nodes from Gi, that are neither in the mapping nor in Ti.
 
     PT: string
-        The problem type we are trying to solve. Values for PT are ("")
+        The problem type we are trying to solve. Values for PT are ("mono", "iso", "sub", "ind")
 
     Returns
     -------
     True if all checks are successful, False otherwise.
     """
-    if G1.number_of_edges(node1, node1) != G2.number_of_edges(node2, node2):
-        return False
+    if PT == "mono":
+        if G1.number_of_edges(node1, node1) < G2.number_of_edges(node2, node2):
+            return False
+    else:
+        if G1.number_of_edges(node1, node1) != G2.number_of_edges(node2, node2):
+            return False
 
     if cut_PT(
             G1,
@@ -68,18 +72,19 @@ def check_feasibility(
             T1,
             T1_out,
             T2,
-            T2_out
+            T2_out,
+            PT
     ):
         return False
 
-    if not consistent_PT(G1, G2, node1, node2, mapping, reverse_mapping):
+    if not consistent_PT(G1, G2, node1, node2, mapping, reverse_mapping, PT):
         return False
 
     return True
 
 
 def cut_PT(
-    G1, G2, G1_labels, G2_labels, u, v, T1, T1_out, T2, T2_out
+    G1, G2, G1_labels, G2_labels, u, v, T1, T1_out, T2, T2_out, PT="iso"
 ):
     """Implements the cutting rules for the ISO problem.
 
@@ -101,6 +106,9 @@ def cut_PT(
     T1_out, T2_out: set
         Ti_out contains all the nodes from Gi, that are neither in the mapping nor in Ti.
 
+    PT: string
+        The problem type we are trying to solve. Values for PT are ("mono", "iso", "sub", "ind")
+
     Returns
     -------
     True if we should prune this branch, i.e. the node pair failed the cutting checks. False otherwise.
@@ -121,17 +129,30 @@ def cut_PT(
     for labeled_nh1, labeled_nh2 in zip(
         u_labels_neighbors.values(), v_labels_neighbors.values()
     ):
-        if len(T1.intersection(labeled_nh1)) != len(
-            T2.intersection(labeled_nh2)
-        ) or len(T1_out.intersection(labeled_nh1)) != len(
-            T2_out.intersection(labeled_nh2)
-        ):
-            return True
+        if PT == "iso":
+            if len(T1.intersection(labeled_nh1)) != len(
+                T2.intersection(labeled_nh2)
+            ) or len(T1_out.intersection(labeled_nh1)) != len(
+                T2_out.intersection(labeled_nh2)
+            ):
+                return True
+        elif PT == "ind":
+            if len(T1.intersection(labeled_nh1)) > len(
+                T2.intersection(labeled_nh2)
+            ) or len(T1_out.intersection(labeled_nh1)) > len(
+                T2_out.intersection(labeled_nh2)
+            ):
+                return True
+        elif PT == "sub":
+            if len(T1.intersection(labeled_nh1)) > len(
+                T2.intersection(labeled_nh2)
+            ):
+                return True
 
     return False
 
 
-def consistent_PT(G1, G2, u, v, mapping, reverse_mapping):
+def consistent_PT(G1, G2, u, v, mapping, reverse_mapping, PT="iso"):
     """Checks the consistency of extending the mapping using the current node pair.
 
     Parameters
@@ -148,29 +169,39 @@ def consistent_PT(G1, G2, u, v, mapping, reverse_mapping):
     reverse_mapping: dict
         The reverse mapping as extended so far. Maps nodes from G2 to nodes of G1. It's basically "mapping" reversed.
 
+    PT: string
+        The problem type we are trying to solve. Values for PT are ("mono", "iso", "sub", "ind")
+
     Returns
     -------
     True if the pair passes all the consistency checks successfully. False otherwise.
     """
     # Check if every covered neighbor of u is mapped to every covered neighbor of v
     # Also check if there is the same number of edges between the candidates and their neighbors
-    for neighbor in G1[u]:
-        if neighbor in mapping:
-            if mapping[neighbor] not in G2[v]:
-                return False
-            elif G1.number_of_edges(u, neighbor) != G2.number_of_edges(
-                    v, mapping[neighbor]
-            ):
-                return False
+    if PT != "mono":
+        for neighbor in G1[u]:
+            if neighbor in mapping:
+                if mapping[neighbor] not in G2[v]:
+                    return False
+                elif G1.number_of_edges(u, neighbor) != G2.number_of_edges(
+                        v, mapping[neighbor]
+                ):
+                    return False
 
     for neighbor in G2[v]:
         if neighbor in reverse_mapping:
             if reverse_mapping[neighbor] not in G1[u]:
                 return False
-            elif G1.number_of_edges(
-                    u, reverse_mapping[neighbor]
-            ) != G2.number_of_edges(v, neighbor):
-                return False
+            elif PT == "mono":
+                if G1.number_of_edges(
+                        u, reverse_mapping[neighbor]
+                ) < G2.number_of_edges(v, neighbor):
+                    return False
+            else:
+                if G1.number_of_edges(
+                        u, reverse_mapping[neighbor]
+                ) != G2.number_of_edges(v, neighbor):
+                    return False
     return True
 
 

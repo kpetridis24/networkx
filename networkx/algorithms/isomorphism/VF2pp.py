@@ -9,7 +9,7 @@ from networkx.algorithms.isomorphism.VF2pp_helpers.candidates import find_candid
 from networkx.algorithms.isomorphism.VF2pp_helpers.node_ordering import matching_order
 
 
-def isomorphic_VF2pp(G1, G2, G1_labels, G2_labels):
+def isomorphic_VF2pp(G1, G2, G1_labels, G2_labels, PT="iso"):
     """Implementation of the VF2++ algorithm.
 
     Parameters
@@ -19,6 +19,9 @@ def isomorphic_VF2pp(G1, G2, G1_labels, G2_labels):
 
     G1_labels,G2_labels: dict
         The label of every node in G1 and G2 respectively.
+
+    PT: string
+        The problem type we are trying to solve. Values for PT are ("mono", "iso", "sub", "ind")
 
     Returns
     -------
@@ -61,6 +64,7 @@ def isomorphic_VF2pp(G1, G2, G1_labels, G2_labels):
                 T1_out,
                 T2,
                 T2_out,
+                PT
             ):
                 visited.add(candidate)
 

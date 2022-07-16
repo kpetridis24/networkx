@@ -93,6 +93,7 @@ class TestFeasibilityISO:
                 T1_out,
                 T2,
                 T2_out,
+                "iso"
             ):
                 feasible = n
                 cnt += 1
@@ -171,6 +172,7 @@ class TestFeasibilityISO:
                         T1_out,
                         T2,
                         T2_out,
+                        "iso"
                     )
 
     def test_iso_feasibility3(self):
@@ -257,6 +259,7 @@ class TestFeasibilityISO:
                         T1_out,
                         T2,
                         T2_out,
+                        "iso"
                     )
                 # else:
                 #     assert not check_feasibility(node1, node2, G1, G2, G1_labels, G2_labels, mapping, reverse_mapping,
