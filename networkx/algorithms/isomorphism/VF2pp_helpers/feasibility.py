@@ -2,7 +2,7 @@ import networkx as nx
 import collections
 
 
-def check_feasibility(
+def feasibility(
     node1,
     node2,
     G1,
@@ -15,7 +15,7 @@ def check_feasibility(
     T1_out,
     T2,
     T2_out,
-    PT="iso"
+    PT="iso",
 ):
     """Given a candidate pair of nodes u and v from G1 and G2 respectively, checks if it's feasible to extend the
     mapping, i.e. if u and v can be matched.
@@ -55,6 +55,9 @@ def check_feasibility(
     -------
     True if all checks are successful, False otherwise.
     """
+    if PT not in ("mono", "sub", "ind", "iso"):
+        raise ValueError
+
     if PT == "mono":
         if G1.number_of_edges(node1, node1) < G2.number_of_edges(node2, node2):
             return False
@@ -62,19 +65,7 @@ def check_feasibility(
         if G1.number_of_edges(node1, node1) != G2.number_of_edges(node2, node2):
             return False
 
-    if cut_PT(
-            G1,
-            G2,
-            G1_labels,
-            G2_labels,
-            node1,
-            node2,
-            T1,
-            T1_out,
-            T2,
-            T2_out,
-            PT
-    ):
+    if cut_PT(G1, G2, G1_labels, G2_labels, node1, node2, T1, T1_out, T2, T2_out, PT):
         return False
 
     if not consistent_PT(G1, G2, node1, node2, mapping, reverse_mapping, PT):
@@ -83,9 +74,7 @@ def check_feasibility(
     return True
 
 
-def cut_PT(
-    G1, G2, G1_labels, G2_labels, u, v, T1, T1_out, T2, T2_out, PT="iso"
-):
+def cut_PT(G1, G2, G1_labels, G2_labels, u, v, T1, T1_out, T2, T2_out, PT="iso"):
     """Implements the cutting rules for the ISO problem.
 
     Parameters
@@ -144,9 +133,7 @@ def cut_PT(
             ):
                 return True
         elif PT == "sub":
-            if len(T1.intersection(labeled_nh1)) > len(
-                T2.intersection(labeled_nh2)
-            ):
+            if len(T1.intersection(labeled_nh1)) > len(T2.intersection(labeled_nh2)):
                 return True
 
     return False
@@ -184,7 +171,7 @@ def consistent_PT(G1, G2, u, v, mapping, reverse_mapping, PT="iso"):
                 if mapping[neighbor] not in G2[v]:
                     return False
                 elif G1.number_of_edges(u, neighbor) != G2.number_of_edges(
-                        v, mapping[neighbor]
+                    v, mapping[neighbor]
                 ):
                     return False
 
@@ -194,14 +181,12 @@ def consistent_PT(G1, G2, u, v, mapping, reverse_mapping, PT="iso"):
                 return False
             elif PT == "mono":
                 if G1.number_of_edges(
-                        u, reverse_mapping[neighbor]
+                    u, reverse_mapping[neighbor]
                 ) < G2.number_of_edges(v, neighbor):
                     return False
             else:
                 if G1.number_of_edges(
-                        u, reverse_mapping[neighbor]
+                    u, reverse_mapping[neighbor]
                 ) != G2.number_of_edges(v, neighbor):
                     return False
     return True
-
-

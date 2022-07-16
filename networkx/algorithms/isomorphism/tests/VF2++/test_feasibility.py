@@ -1,6 +1,6 @@
 import random
 import networkx as nx
-from networkx.algorithms.isomorphism.VF2pp import check_feasibility
+from networkx.algorithms.isomorphism.VF2pp import feasibility
 from networkx.algorithms.isomorphism.VF2pp_helpers.feasibility import cut_PT
 
 
@@ -80,7 +80,7 @@ class TestFeasibilityISO:
         cnt = 0
         feasible = -1
         for n in self.G.nodes():
-            if check_feasibility(
+            if feasibility(
                 1999,
                 n,
                 self.G,
@@ -93,7 +93,7 @@ class TestFeasibilityISO:
                 T1_out,
                 T2,
                 T2_out,
-                "iso"
+                "iso",
             ):
                 feasible = n
                 cnt += 1
@@ -159,7 +159,7 @@ class TestFeasibilityISO:
         for node1 in G1.nodes():
             for node2 in G2.nodes():
                 if node2 == mapped_nodes[node1]:
-                    assert check_feasibility(
+                    assert feasibility(
                         node1,
                         node2,
                         G1,
@@ -172,7 +172,7 @@ class TestFeasibilityISO:
                         T1_out,
                         T2,
                         T2_out,
-                        "iso"
+                        "iso",
                     )
 
     def test_iso_feasibility3(self):
@@ -246,7 +246,7 @@ class TestFeasibilityISO:
         for node1 in G1.nodes():
             for node2 in G2.nodes():
                 if node2 == mapped_nodes[node1]:
-                    assert check_feasibility(
+                    assert feasibility(
                         node1,
                         node2,
                         G1,
@@ -259,7 +259,7 @@ class TestFeasibilityISO:
                         T1_out,
                         T2,
                         T2_out,
-                        "iso"
+                        "iso",
                     )
                 # else:
                 #     assert not check_feasibility(node1, node2, G1, G2, G1_labels, G2_labels, mapping, reverse_mapping,
