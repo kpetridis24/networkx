@@ -35,8 +35,8 @@ def isomorphic_VF2pp(G1, G2, G1_labels, G2_labels):
     """
     if not G1 and not G2:
         return False
-    if not precheck(G1, G2, G1_labels, G2_labels):
-        return False
+    # if not precheck(G1, G2, G1_labels, G2_labels):
+    #     return False
 
     graph_params, state_params, node_order, stack = initialize_VF2pp(
         G1, G2, G1_labels, G2_labels
@@ -50,7 +50,7 @@ def isomorphic_VF2pp(G1, G2, G1_labels, G2_labels):
         try:
             candidate = next(candidate_nodes)
             if feasibility(current_node, candidate, graph_params, state_params):
-                if len(mapping) == G1.number_of_nodes() - 1:
+                if len(mapping) == G2.number_of_nodes() - 1:
                     mapping.update({current_node: candidate})
                     yield state_params.mapping
 

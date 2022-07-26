@@ -117,9 +117,9 @@ def cut_PT(u, v, graph_params, state_params):
             ):
                 return True
 
-        if len(T1.intersection(G1_nbh)) != len(T2.intersection(G2_nbh)) or len(
+        if len(T1.intersection(G1_nbh)) < len(T2.intersection(G2_nbh)) or len(
             T1_out.intersection(G1_nbh)
-        ) != len(T2_out.intersection(G2_nbh)):
+        ) < len(T2_out.intersection(G2_nbh)):
             return True
 
     return False
