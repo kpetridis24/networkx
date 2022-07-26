@@ -104,4 +104,4 @@ l1, l3 = nx.get_node_attributes(g1, "label"), nx.get_node_attributes(g3, "label"
 
 gm = GraphMatcher(g1, g3)
 print(gm.subgraph_is_isomorphic())
-print(VF2pp(g1, g3, l1, l3))
+print(VF2pp(g1, g3, l1, l3, PT="sub"))

@@ -131,7 +131,7 @@ def restore_Tinout(popped_node1, popped_node2, graph_params, state_params):
 
 
 def update_state(
-    node, candidate, matching_node, order, stack, graph_params, state_params
+    node, candidate, matching_node, order, stack, graph_params, state_params, PT
 ):
     """Updates all the necessary parameters of VF2++, after a successful node matching
 
@@ -179,7 +179,7 @@ def update_state(
     update_Tinout(node, candidate, graph_params, state_params)
 
     next_node = order[matching_node]
-    candidates = find_candidates(next_node, graph_params, state_params)
+    candidates = find_candidates(next_node, graph_params, state_params, PT)
     stack.append((next_node, iter(candidates)))
 
 

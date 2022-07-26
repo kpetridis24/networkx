@@ -1,4 +1,4 @@
-def find_candidates(u, graph_params, state_params):
+def find_candidates(u, graph_params, state_params, PT="iso"):
     """Given node u of G1, finds the candidates of u from G2.
 
     Parameters
@@ -41,13 +41,22 @@ def find_candidates(u, graph_params, state_params):
 
     covered_neighbors = [nbr for nbr in G1[u] if nbr in mapping]
     if not covered_neighbors:
-        return {
-            node
-            for node in G2.nodes()
-            if node not in reverse_mapping
-            and G2_labels[node] == G1_labels[u]
-            and G2.degree[node] <= G1.degree[u]
-        }
+        if PT == "iso":
+            return {
+                node
+                for node in G2.nodes()
+                if node not in reverse_mapping
+                and G2_labels[node] == G1_labels[u]
+                and G2.degree[node] == G1.degree[u]
+                and not {nbr2 for nbr2 in G2[node] if nbr2 in reverse_mapping}
+            }
+        elif PT == "sub":
+            return {
+                node
+                for node in G2.nodes()
+                if node not in reverse_mapping
+                if G2_labels[node] == G1_labels[u]
+            }
 
     nbr1 = covered_neighbors[0]
     common_nodes = {nbr2 for nbr2 in G2[mapping[nbr1]]}
@@ -55,10 +64,13 @@ def find_candidates(u, graph_params, state_params):
     for nbr1 in covered_neighbors[1:]:
         common_nodes.intersection_update(G2[mapping[nbr1]])
 
-    return {
-        node
-        for node in common_nodes
-        if node not in reverse_mapping
-        and G2_labels[node] == G1_labels[u]
-        and G2.degree[node] <= G1.degree[u]
-    }
+    if PT == "iso":
+        return {
+            node
+            for node in common_nodes
+            if node not in reverse_mapping
+            and G2_labels[node] == G1_labels[u]
+            and G2.degree[node] == G1.degree[u]
+        }
+    elif PT == "sub":
+        return {node for node in common_nodes if G2_labels[node] == G1_labels[u]}

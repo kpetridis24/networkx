@@ -1,7 +1,7 @@
 import networkx as nx
 
 
-def feasibility(node1, node2, graph_params, state_params):
+def feasibility(node1, node2, graph_params, state_params, PT="iso"):
     """Given a candidate pair of nodes u and v from G1 and G2 respectively, checks if it's feasible to extend the
     mapping, i.e. if u and v can be matched.
 
@@ -47,17 +47,17 @@ def feasibility(node1, node2, graph_params, state_params):
     if G1.number_of_edges(node1, node1) != G2.number_of_edges(node2, node2):
         return False
 
-    if cut_PT(node1, node2, graph_params, state_params):
+    if cut_PT(node1, node2, graph_params, state_params, PT):
         return False
 
     if isinstance(G1, nx.MultiGraph):
-        if not consistent_PT(node1, node2, graph_params, state_params):
+        if not consistent_PT(node1, node2, graph_params, state_params, PT):
             return False
 
     return True
 
 
-def cut_PT(u, v, graph_params, state_params):
+def cut_PT(u, v, graph_params, state_params, PT="iso"):
     """Implements the cutting rules for the ISO problem.
 
     Parameters
@@ -95,10 +95,20 @@ def cut_PT(u, v, graph_params, state_params):
     True if we should prune this branch, i.e. the node pair failed the cutting checks. False otherwise.
     """
     G1, G2, G1_labels, G2_labels = graph_params
-    _, _, T1, T1_out, T2, T2_out = state_params
+    mapping, reverse_mapping, T1, T1_out, T2, T2_out = state_params
 
     u_labels_neighbors = nx.utils.groups({n1: G1_labels[n1] for n1 in G1[u]})
     v_labels_neighbors = nx.utils.groups({n2: G2_labels[n2] for n2 in G2[v]})
+
+    # for neighbor in G1[u]:
+    #     if neighbor in mapping:
+    #         if not (mapping[neighbor] in G2[v]):
+    #             return False
+    #
+    # for neighbor in G2[v]:
+    #     if neighbor in reverse_mapping:
+    #         if not (reverse_mapping[neighbor] in G1[u]):
+    #             return False
 
     # if the neighbors of u, do not have the same labels as those of v, NOT feasible.
     if set(u_labels_neighbors.keys()) != set(v_labels_neighbors.keys()):
@@ -117,15 +127,19 @@ def cut_PT(u, v, graph_params, state_params):
             ):
                 return True
 
-        if len(T1.intersection(G1_nbh)) < len(T2.intersection(G2_nbh)) or len(
-            T1_out.intersection(G1_nbh)
-        ) < len(T2_out.intersection(G2_nbh)):
-            return True
+        if PT == "iso":
+            if len(T1.intersection(G1_nbh)) != len(T2.intersection(G2_nbh)) or len(
+                T1_out.intersection(G1_nbh)
+            ) != len(T2_out.intersection(G2_nbh)):
+                return True
+        elif PT == "sub":
+            if len(T1.intersection(G1_nbh)) < len(T2.intersection(G2_nbh)):
+                return True
 
     return False
 
 
-def consistent_PT(u, v, graph_params, state_params):
+def consistent_PT(u, v, graph_params, state_params, PT="iso"):
     """Checks the consistency of extending the mapping using the current node pair.
 
     Parameters

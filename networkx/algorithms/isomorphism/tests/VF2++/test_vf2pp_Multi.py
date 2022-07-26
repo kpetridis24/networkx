@@ -1,13 +1,5 @@
 import networkx as nx
-from networkx.algorithms.isomorphism.VF2pp import isomorphic_VF2pp
-
-
-def VF2pp(G1, G2, l1, l2):
-    try:
-        m = next(isomorphic_VF2pp(G1, G2, l1, l2))
-        return m
-    except StopIteration:
-        return None
+from networkx.algorithms.isomorphism.VF2pp import VF2pp
 
 
 def assign_labels(G1, G2, mapped_nodes=None, same=False):

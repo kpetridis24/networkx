@@ -1,13 +1,5 @@
 import networkx as nx
-from networkx.algorithms.isomorphism.VF2pp import isomorphic_VF2pp
-
-
-def VF2pp(G1, G2, l1, l2):
-    try:
-        m = next(isomorphic_VF2pp(G1, G2, l1, l2))
-        return m
-    except StopIteration:
-        return None
+from networkx.algorithms.isomorphism.VF2pp import VF2pp
 
 
 def assign_labels(G1, G2, mapped_nodes=None, same=False):
@@ -154,7 +146,6 @@ class TestGraphISOVF2pp:
         mapped = {1: "A", 2: "C", 3: "D", 4: "E", 5: "G", 7: "B", 6: "F"}
         edges1 = [(1, 2), (1, 5), (5, 6), (2, 3), (2, 4), (3, 4), (4, 5), (2, 7)]
 
-        colors = ["white", "black", "green", "purple", "orange", "red", "blue"]
         G1.add_edges_from(edges1)
         G2 = nx.relabel_nodes(G1, mapped)
 
