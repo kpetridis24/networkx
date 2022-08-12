@@ -1,7 +1,7 @@
 import networkx as nx
 
 
-def _feasibility(node1, node2, graph_params, state_params):
+def _feasibility(node1, node2, graph_params, state_params, PT="iso"):
     """Given a candidate pair of nodes u and v from G1 and G2 respectively, checks if it's feasible to extend the
     mapping, i.e. if u and v can be matched.
 
@@ -47,7 +47,7 @@ def _feasibility(node1, node2, graph_params, state_params):
     if G1.number_of_edges(node1, node1) != G2.number_of_edges(node2, node2):
         return False
 
-    if _cut_PT(node1, node2, graph_params, state_params):
+    if _cut_PT(node1, node2, graph_params, state_params, PT):
         return False
 
     if isinstance(G1, nx.MultiGraph):
@@ -57,7 +57,7 @@ def _feasibility(node1, node2, graph_params, state_params):
     return True
 
 
-def _cut_PT(u, v, graph_params, state_params):
+def _cut_PT(u, v, graph_params, state_params, PT="iso"):
     """Implements the cutting rules for the ISO problem.
 
     Parameters
@@ -117,10 +117,14 @@ def _cut_PT(u, v, graph_params, state_params):
             ):
                 return True
 
-        if len(T1.intersection(G1_nbh)) != len(T2.intersection(G2_nbh)) or len(
-            T1_out.intersection(G1_nbh)
-        ) != len(T2_out.intersection(G2_nbh)):
-            return True
+        if PT == "iso":
+            if len(T1.intersection(G1_nbh)) != len(T2.intersection(G2_nbh)) or len(
+                T1_out.intersection(G1_nbh)
+            ) != len(T2_out.intersection(G2_nbh)):
+                return True
+        elif PT == "sub":
+            if len(T1.intersection(G1_nbh)) < len(T2.intersection(G2_nbh)):
+                return True
 
     return False
 

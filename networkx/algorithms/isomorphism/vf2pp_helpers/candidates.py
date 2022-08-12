@@ -1,4 +1,4 @@
-def _find_candidates(u, graph_params, state_params):
+def _find_candidates(u, graph_params, state_params, PT="iso"):
     """Given node u of G1, finds the candidates of u from G2.
 
     Parameters
@@ -36,7 +36,22 @@ def _find_candidates(u, graph_params, state_params):
     candidates: set
         The nodes from G2 which are candidates for u.
     """
-    G1, G2, G1_labels, _, _, nodes_of_G2Labels, G2_nodes_of_degree = graph_params
+    if PT == "iso":
+        return _find_candidates_ISO(u, graph_params, state_params)
+    elif PT == "sub":
+        return _find_candidates_SUB(u, graph_params, state_params)
+
+
+def _find_candidates_ISO(u, graph_params, state_params):
+    (
+        G1,
+        G2,
+        G1_labels,
+        G2_labels,
+        _,
+        nodes_of_G2Labels,
+        G2_nodes_of_degree,
+    ) = graph_params
     mapping, reverse_mapping, _, _, _, _ = state_params
 
     covered_neighbors = [nbr for nbr in G1[u] if nbr in mapping]
@@ -59,3 +74,30 @@ def _find_candidates(u, graph_params, state_params):
     return {node for node in common_nodes if node not in reverse_mapping}.intersection(
         *[nodes_of_G2Labels[G1_labels[u]], G2_nodes_of_degree[G1.degree[u]]]
     )
+
+
+def _find_candidates_SUB(u, graph_params, state_params):
+    (
+        G1,
+        G2,
+        G1_labels,
+        G2_labels,
+        _,
+        nodes_of_G2Labels,
+        G2_nodes_of_degree,
+    ) = graph_params
+    mapping, reverse_mapping, _, _, _, _ = state_params
+
+    covered_neighbors = [nbr for nbr in G1[u] if nbr in mapping]
+    if not covered_neighbors:
+        return {
+            node for node in G2.nodes() if node not in reverse_mapping
+        }.intersection(nodes_of_G2Labels[G1_labels[u]])
+
+    nbr1 = covered_neighbors[0]
+    common_nodes = {nbr2 for nbr2 in G2[mapping[nbr1]]}
+
+    for nbr1 in covered_neighbors[1:]:
+        common_nodes.intersection_update(G2[mapping[nbr1]])
+
+    return {node for node in common_nodes}.intersection(nodes_of_G2Labels[G1_labels[u]])
