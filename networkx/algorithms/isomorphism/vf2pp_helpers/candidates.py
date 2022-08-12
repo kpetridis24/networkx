@@ -63,8 +63,7 @@ def _find_candidates(u, graph_params, state_params, PT="iso"):
                 node
                 for node in G2.nodes()
                 if node not in reverse_mapping
-                if G2_labels[node] == G1_labels[u]  # todo: use intersection
-            }
+            }.intersection(nodes_of_G2Labels[G1_labels[u]])
 
     nbr1 = covered_neighbors[0]
     common_nodes = {nbr2 for nbr2 in G2[mapping[nbr1]]}
@@ -80,5 +79,5 @@ def _find_candidates(u, graph_params, state_params, PT="iso"):
         )
     elif PT == "sub":
         return {
-            node for node in common_nodes if G2_labels[node] == G1_labels[u]
-        }  # todo: use intersection
+            node for node in common_nodes
+        }.intersection(nodes_of_G2Labels[G1_labels[u]])
