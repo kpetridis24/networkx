@@ -22,10 +22,10 @@ from networkx.algorithms.isomorphism.vf2pp_helpers.state import (
     _update_state,
 )
 
-__all__ = ["vf2pp_mapping", "vf2pp_is_isomorphic"]
+__all__ = ["vf2pp_mapping", "vf2pp_is_isomorphic", "vf2pp_subgraph_is_isomorphic"]
 
 
-def vf2pp_mapping(G1, G2, node_labels=None, default_label=None):
+def vf2pp_mapping(G1, G2, node_labels=None, default_label=None, PT="iso"):
     """Return an isomorphic mapping between `G1` and `G2` if it exists.
 
     Parameters
@@ -44,7 +44,7 @@ def vf2pp_mapping(G1, G2, node_labels=None, default_label=None):
     Node mapping, if the two graphs are isomorphic. None otherwise.
     """
     try:
-        mapping = next(vf2pp_all_mappings(G1, G2, node_labels, default_label))
+        mapping = next(vf2pp_all_mappings(G1, G2, node_labels, default_label, PT))
         return mapping
     except StopIteration:
         return None
@@ -68,10 +68,35 @@ def vf2pp_is_isomorphic(G1, G2, node_labels=None, default_label=None):
     -------
     True if the two graphs are isomorphic. False otherwise.
     """
-    return True and not (not vf2pp_mapping(G1, G2, node_labels, default_label))
+    return True and not (
+        not vf2pp_mapping(G1, G2, node_labels, default_label, PT="iso")
+    )
 
 
-def vf2pp_all_mappings(G1, G2, node_labels=None, default_label=None):
+def vf2pp_subgraph_is_isomorphic(G1, G2, node_labels=None, default_label=None):
+    """Checks if there exists a Subgraph in G1, that is isomorphic to G2.
+
+    Parameters
+    ----------
+    G1,G2: NetworkX Graph or MultiGraph instances.
+        The two graphs to check for isomorphism or monomorphism.
+
+    node_labels: Label name
+        The label name of all nodes
+
+    default_label: Label name
+        Let the user pick a default label value
+
+    Returns
+    -------
+    True if the two graphs are isomorphic. False otherwise.
+    """
+    return True and not (
+        not vf2pp_mapping(G1, G2, node_labels, default_label, PT="sub")
+    )
+
+
+def vf2pp_all_mappings(G1, G2, node_labels=None, default_label=None, PT="iso"):
     """Yields all the possible mappings between G1 and G2.
 
     Parameters
@@ -89,11 +114,11 @@ def vf2pp_all_mappings(G1, G2, node_labels=None, default_label=None):
     G1_labels, G2_labels = {}, {}
     if not G1 and not G2:
         return False
-    if not _precheck(G1, G2, G1_labels, G2_labels, node_labels, default_label):
+    if not _precheck(G1, G2, G1_labels, G2_labels, node_labels, default_label, PT):
         return False
 
     graph_params, state_params, node_order, stack = _initialize_VF2pp(
-        G1, G2, G1_labels, G2_labels
+        G1, G2, G1_labels, G2_labels, PT
     )
     matching_node = 1
     mapping = state_params.mapping
@@ -110,7 +135,7 @@ def vf2pp_all_mappings(G1, G2, node_labels=None, default_label=None):
                 _restore_state(stack, graph_params, state_params)
             continue
 
-        if _feasibility(current_node, candidate, graph_params, state_params):
+        if _feasibility(current_node, candidate, graph_params, state_params, PT):
             if len(mapping) == G2.number_of_nodes() - 1:
                 mapping.update({current_node: candidate})
                 yield mapping
@@ -125,11 +150,14 @@ def vf2pp_all_mappings(G1, G2, node_labels=None, default_label=None):
                 stack,
                 graph_params,
                 state_params,
+                PT,
             )
             matching_node += 1
 
 
-def _precheck(G1, G2, G1_labels, G2_labels, node_labels=None, default_label=-1):
+def _precheck(
+    G1, G2, G1_labels, G2_labels, node_labels=None, default_label=-1, PT="iso"
+):
     """Checks if all the pre-requisites are satisfied before calling the isomorphism solver.
 
     Notes
@@ -154,10 +182,14 @@ def _precheck(G1, G2, G1_labels, G2_labels, node_labels=None, default_label=-1):
     default_label: Label name
         Let the user pick a default label value
     """
-    if G1.order() != G2.order():
-        return False
-    if sorted(d for n, d in G1.degree()) != sorted(d for n, d in G2.degree()):
-        return False
+    if PT == "iso":
+        if G1.order() != G2.order():
+            return False
+        if sorted(d for n, d in G1.degree()) != sorted(d for n, d in G2.degree()):
+            return False
+    elif PT == "sub":
+        if G1.order() <= G2.order() or not G2:
+            return False
 
     G1_labels.update(G1.nodes(data=node_labels, default=default_label))
     G2_labels.update(G2.nodes(data=node_labels, default=default_label))
@@ -166,16 +198,23 @@ def _precheck(G1, G2, G1_labels, G2_labels, node_labels=None, default_label=-1):
         label: len(nodes) for label, nodes in nx.utils.groups(G1_labels).items()
     }
 
-    if any(
-        label not in G1_nodes_per_label or G1_nodes_per_label[label] != len(nodes)
-        for label, nodes in nx.utils.groups(G2_labels).items()
-    ):
-        return False
+    if PT == "iso":
+        if any(
+            label not in G1_nodes_per_label or G1_nodes_per_label[label] != len(nodes)
+            for label, nodes in nx.utils.groups(G2_labels).items()
+        ):
+            return False
+    elif PT == "sub":
+        if any(
+            label not in G1_nodes_per_label
+            for label, nodes in nx.utils.groups(G2_labels).items()
+        ):
+            return False
 
     return True
 
 
-def _initialize_VF2pp(G1, G2, G1_labels, G2_labels):
+def _initialize_VF2pp(G1, G2, G1_labels, G2_labels, PT):
     """Initializes all the necessary parameters for VF2++
 
     Parameters
@@ -244,7 +283,7 @@ def _initialize_VF2pp(G1, G2, G1_labels, G2_labels):
     node_order = _matching_order(graph_params)
 
     starting_node = node_order[0]
-    candidates = _find_candidates(starting_node, graph_params, state_params)
+    candidates = _find_candidates(starting_node, graph_params, state_params, PT)
     stack = [(starting_node, iter(candidates))]
 
     return graph_params, state_params, node_order, stack
