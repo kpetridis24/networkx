@@ -68,7 +68,9 @@ def vf2pp_is_isomorphic(G1, G2, node_labels=None, default_label=None):
     -------
     True if the two graphs are isomorphic. False otherwise.
     """
-    return True and not (not vf2pp_mapping(G1, G2, node_labels, default_label))
+    if vf2pp_mapping(G1, G2, node_labels, default_label):
+        return True
+    return False
 
 
 def vf2pp_all_mappings(G1, G2, node_labels=None, default_label=None):
@@ -158,6 +160,9 @@ def _precheck(G1, G2, G1_labels, G2_labels, node_labels=None, default_label=-1):
         return False
     if sorted(d for n, d in G1.degree()) != sorted(d for n, d in G2.degree()):
         return False
+
+    if not node_labels:
+        return True
 
     G1_labels.update(G1.nodes(data=node_labels, default=default_label))
     G2_labels.update(G2.nodes(data=node_labels, default=default_label))
