@@ -899,3 +899,80 @@ class TestMultiGraphISOVF2pp:
         G1.add_edges_from([(i, i) for i in range(0, 3)] * 7)
         m = vf2pp_mapping(G1, G2, node_labels="label")
         assert m
+
+    def test_vf2_multigraph(self):
+        # Simple test for multigraphs
+        # Need something much more rigorous
+        edges = [
+            (0, 1),
+            (1, 2),
+            (2, 3),
+            (3, 4),
+            (4, 5),
+            (5, 6),
+            (6, 7),
+            (7, 8),
+            (8, 9),
+            (9, 10),
+            (10, 11),
+            (10, 11),
+            (11, 12),
+            (11, 12),
+            (12, 13),
+            (12, 13),
+            (13, 14),
+            (13, 14),
+            (14, 15),
+            (14, 15),
+            (15, 16),
+            (15, 16),
+            (16, 17),
+            (16, 17),
+            (17, 18),
+            (17, 18),
+            (18, 19),
+            (18, 19),
+            (19, 0),
+            (19, 0),
+        ]
+        nodes = list(range(20))
+        import random
+
+        g1 = nx.MultiGraph()
+        g1.add_edges_from(edges)
+        for _ in range(10):
+            new_nodes = list(nodes)
+            random.shuffle(new_nodes)
+            d = dict(zip(nodes, new_nodes))
+            g2 = nx.relabel_nodes(g1, d)
+            m = vf2pp_mapping(g1, g2, node_labels=None)
+            assert m
+
+    def test_selfloop(self):
+        import random
+
+        # Simple test for graphs with selfloops
+        edges = [
+            (0, 1),
+            (0, 2),
+            (1, 2),
+            (1, 3),
+            (2, 2),
+            (2, 4),
+            (3, 1),
+            (3, 2),
+            (4, 2),
+            (4, 5),
+            (5, 4),
+        ]
+        nodes = list(range(6))
+
+        g1 = nx.Graph()
+        g1.add_edges_from(edges)
+        for _ in range(100):
+            new_nodes = list(nodes)
+            random.shuffle(new_nodes)
+            d = dict(zip(nodes, new_nodes))
+            g2 = nx.relabel_nodes(g1, d)
+            m = vf2pp_mapping(g1, g2, node_labels=None)
+            assert m

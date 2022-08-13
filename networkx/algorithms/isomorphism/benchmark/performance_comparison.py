@@ -46,12 +46,8 @@ class VF2VF2ppComparison:
             G1 = nx.gnp_random_graph(V, p=prob, seed=39)
             G2 = nx.gnp_random_graph(V, p=prob, seed=39)
 
-            for n in G1.nodes():
-                G1.nodes[n]["label"] = "blue"
-                G2.nodes[n]["label"] = "blue"
-
             t0 = time.time()
-            _ = vf2pp_is_isomorphic(G1, G2, node_labels="label")
+            _ = vf2pp_is_isomorphic(G1, G2, node_labels=None)
             dur1 = time.time() - t0
 
             t0 = time.time()
@@ -68,12 +64,8 @@ class VF2VF2ppComparison:
             G1.add_nodes_from([node for node in range(V)])
             G2.add_nodes_from([node for node in range(V)])
 
-            for n in G1.nodes():
-                G1.nodes[n]["label"] = "blue"
-                G2.nodes[n]["label"] = "blue"
-
             t0 = time.time()
-            _ = vf2pp_is_isomorphic(G1, G2, node_labels="label")
+            _ = vf2pp_is_isomorphic(G1, G2, node_labels=None)
             dur1 = time.time() - t0
 
             t0 = time.time()
@@ -88,12 +80,8 @@ class VF2VF2ppComparison:
             G1 = nx.complete_graph(V)
             G2 = nx.complete_graph(V)
 
-            for n in G1.nodes():
-                G1.nodes[n]["label"] = "blue"
-                G2.nodes[n]["label"] = "blue"
-
             t0 = time.time()
-            _ = vf2pp_is_isomorphic(G1, G2, node_labels="label")
+            _ = vf2pp_is_isomorphic(G1, G2, node_labels=None)
             dur1 = time.time() - t0
 
             t0 = time.time()
@@ -158,7 +146,7 @@ class CandidateSelectionMethodComparison:
             )
 
             t0 = time.time()
-            _ = vf2pp_is_isomorphic(G1, G2, node_labels="label")
+            _ = vf2pp_is_isomorphic(G1, G2, node_labels=None)
             dur1 = time.time() - t0
 
             t0 = time.time()

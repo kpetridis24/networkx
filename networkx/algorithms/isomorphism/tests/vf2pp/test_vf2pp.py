@@ -1,3 +1,7 @@
+import os
+import random
+import struct
+
 import networkx as nx
 from networkx.algorithms.isomorphism.vf2pp import vf2pp_mapping
 
@@ -33,6 +37,37 @@ def assign_labels(G1, G2, mapped_nodes=None, same=False):
             node = mapped_nodes[node]
         G2.nodes[node]["label"] = color
         c += 1
+
+
+def create_graph(filename):
+    """Creates a Graph instance from the filename."""
+
+    # The file is assumed to be in the format from the VF2 graph database.
+    # Each file is composed of 16-bit numbers (unsigned short int).
+    # So we will want to read 2 bytes at a time.
+
+    # We can read the number as follows:
+    #   number = struct.unpack('<H', file.read(2))
+    # This says, expect the data in little-endian encoding
+    # as an unsigned short int and unpack 2 bytes from the file.
+
+    fh = open(filename, mode="rb")
+
+    # Grab the number of nodes.
+    # Node numeration is 0-based, so the first node has index 0.
+    nodes = struct.unpack("<H", fh.read(2))[0]
+
+    graph = nx.Graph()
+    for from_node in range(nodes):
+        # Get the number of edges.
+        edges = struct.unpack("<H", fh.read(2))[0]
+        for edge in range(edges):
+            # Get the terminal node.
+            to_node = struct.unpack("<H", fh.read(2))[0]
+            graph.add_edge(from_node, to_node)
+
+    fh.close()
+    return graph
 
 
 class TestGraphISOVF2pp:
@@ -619,3 +654,72 @@ class TestGraphISOVF2pp:
 
         m = vf2pp_mapping(G1, G2, node_labels="label")
         assert m
+
+    def test_wiki_example(self):
+        def test_graph(self):
+            # Source: https://en.wikipedia.org/wiki/Graph_isomorphism
+
+            # Nodes 'a', 'b', 'c' and 'd' form a column.
+            # Nodes 'g', 'h', 'i' and 'j' form a column.
+            g1edges = [
+                ["a", "g"],
+                ["a", "h"],
+                ["a", "i"],
+                ["b", "g"],
+                ["b", "h"],
+                ["b", "j"],
+                ["c", "g"],
+                ["c", "i"],
+                ["c", "j"],
+                ["d", "h"],
+                ["d", "i"],
+                ["d", "j"],
+            ]
+
+            # Nodes 1,2,3,4 form the clockwise corners of a large square.
+            # Nodes 5,6,7,8 form the clockwise corners of a small square
+            g2edges = [
+                [1, 2],
+                [2, 3],
+                [3, 4],
+                [4, 1],
+                [5, 6],
+                [6, 7],
+                [7, 8],
+                [8, 5],
+                [1, 5],
+                [2, 6],
+                [3, 7],
+                [4, 8],
+            ]
+
+            g1 = nx.Graph()
+            g2 = nx.Graph()
+            g1.add_edges_from(g1edges)
+            g2.add_edges_from(g2edges)
+            m = vf2pp_mapping(g1, g1, node_labels=None)
+            assert m
+
+    def test_graph_DB(self):
+        head, tail = os.path.split(__file__)
+        g1 = create_graph(os.path.join(head, "../iso_r01_s80.A99"))
+        g2 = create_graph(os.path.join(head, "../iso_r01_s80.B99"))
+        m = vf2pp_mapping(g1, g2, node_labels=None)
+        assert m
+
+    def test_graph_atlas(self):
+        # Atlas = nx.graph_atlas_g()[0:208] # 208, 6 nodes or less
+        import networkx.generators.atlas as atlas
+
+        GAG = atlas.graph_atlas_g()
+        Atlas = GAG[1:100]
+        alphabet = list(range(26))
+        for graph in Atlas:
+            nlist = list(graph)
+            labels = alphabet[: len(nlist)]
+            for s in range(10):
+                random.shuffle(labels)
+                d = dict(zip(nlist, labels))
+                relabel = nx.relabel_nodes(graph, d)
+                m = vf2pp_mapping(graph, relabel, node_labels=None)
+                assert m

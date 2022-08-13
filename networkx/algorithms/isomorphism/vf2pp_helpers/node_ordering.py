@@ -32,14 +32,21 @@ def _matching_order(graph_params):
         return {}
 
     V1_unordered = set(G1.nodes())
-    label_rarity = {label: len(nodes) for label, nodes in nodes_of_G2Labels.items()}
+    label_rarity = dict()
+    if G1_labels:
+        label_rarity.update(
+            {label: len(nodes) for label, nodes in nodes_of_G2Labels.items()}
+        )
     used_degrees = {node: 0 for node in G1}
     node_order = []
 
     while V1_unordered:
-        max_node = max(
-            _rarest_nodes(V1_unordered, G1_labels, label_rarity), key=G1.degree
-        )
+        if G1_labels:
+            max_node = max(
+                _rarest_nodes(V1_unordered, G1_labels, label_rarity), key=G1.degree
+            )
+        else:
+            max_node = max(V1_unordered, key=G1.degree)
 
         _bfs_levels(
             max_node,
@@ -53,7 +60,8 @@ def _matching_order(graph_params):
 
         node_order.append(max_node)
         V1_unordered.discard(max_node)
-        label_rarity[G1_labels[max_node]] -= 1  # todo: do we need that?
+        if G1_labels:
+            label_rarity[G1_labels[max_node]] -= 1  # todo: do we need that?
 
     return node_order
 
@@ -165,14 +173,19 @@ def _process_level(
                         max_deg_nodes.append(node)
 
         # Get the max_used_degree node with the rarest label
-        next_node = min(max_deg_nodes, key=lambda x: label_rarity[G1_labels[x]])
+        if G1_labels:
+            next_node = min(max_deg_nodes, key=lambda x: label_rarity[G1_labels[x]])
+        else:
+            next_node = max(max_deg_nodes, key=G1.degree)
+
         order.append(next_node)
 
         for node in G1.neighbors(next_node):
             used_degree[node] += 1
 
         dlevel_nodes.remove(next_node)
-        label_rarity[G1_labels[next_node]] -= 1
+        if G1_labels:
+            label_rarity[G1_labels[next_node]] -= 1
         V1_unordered.discard(next_node)
 
 

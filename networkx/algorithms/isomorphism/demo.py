@@ -3,8 +3,8 @@ import time
 import networkx as nx
 
 # Graph initialization
-G1 = nx.gnp_random_graph(50, 0.6, seed=42)
-G2 = nx.gnp_random_graph(50, 0.6, seed=42)
+G1 = nx.gnp_random_graph(600, 0.6, seed=42)
+G2 = nx.gnp_random_graph(600, 0.6, seed=42)
 
 colors = [
     "white",
@@ -33,7 +33,7 @@ for node in G1.nodes():
 
 # VF2++
 t0 = time.time()
-m = nx.vf2pp_is_isomorphic(G1, G2, node_labels="color", default_label=-1)
+m = nx.vf2pp_is_isomorphic(G1, G2, node_labels=None, default_label=-1)
 print(f"VF2++ elapsed time: {time.time() - t0}")
 
 # assert m
