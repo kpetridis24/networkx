@@ -22,7 +22,12 @@ from networkx.algorithms.isomorphism.vf2pp_helpers.state import (
     _update_state,
 )
 
-__all__ = ["vf2pp_mapping", "vf2pp_is_isomorphic", "vf2pp_subgraph_is_isomorphic"]
+__all__ = [
+    "vf2pp_mapping",
+    "vf2pp_is_isomorphic",
+    "vf2pp_subgraph_is_isomorphic",
+    "vf2pp_induced_subgraph_is_isomorphic",
+]
 
 
 def vf2pp_mapping(G1, G2, node_labels=None, default_label=None, PT="iso"):
@@ -93,6 +98,29 @@ def vf2pp_subgraph_is_isomorphic(G1, G2, node_labels=None, default_label=None):
     """
     return True and not (
         not vf2pp_mapping(G1, G2, node_labels, default_label, PT="sub")
+    )
+
+
+def vf2pp_induced_subgraph_is_isomorphic(G1, G2, node_labels=None, default_label=None):
+    """Checks if there exists a Subgraph in G1, that is isomorphic to G2.
+
+    Parameters
+    ----------
+    G1,G2: NetworkX Graph or MultiGraph instances.
+        The two graphs to check for isomorphism or monomorphism.
+
+    node_labels: Label name
+        The label name of all nodes
+
+    default_label: Label name
+        Let the user pick a default label value
+
+    Returns
+    -------
+    True if the two graphs are isomorphic. False otherwise.
+    """
+    return True and not (
+        not vf2pp_mapping(G1, G2, node_labels, default_label, PT="ind")
     )
 
 
@@ -187,8 +215,8 @@ def _precheck(
             return False
         if sorted(d for n, d in G1.degree()) != sorted(d for n, d in G2.degree()):
             return False
-    elif PT == "sub":
-        if G1.order() <= G2.order() or not G2:
+    else:
+        if G1.order() < G2.order() or not G2:
             return False
 
     G1_labels.update(G1.nodes(data=node_labels, default=default_label))
@@ -204,7 +232,7 @@ def _precheck(
             for label, nodes in nx.utils.groups(G2_labels).items()
         ):
             return False
-    elif PT == "sub":
+    else:
         if any(
             label not in G1_nodes_per_label
             for label, nodes in nx.utils.groups(G2_labels).items()

@@ -43,15 +43,20 @@ def _feasibility(node1, node2, graph_params, state_params, PT="iso"):
     -------
     True if all checks are successful, False otherwise.
     """
-    G1, G2 = graph_params.G1, graph_params.G2
-    if G1.number_of_edges(node1, node1) != G2.number_of_edges(node2, node2):
-        return False
+    G1, G2, G1_labels, G2_labels, _, _, _ = graph_params
+
+    if PT == "ind":
+        if G1.number_of_edges(node1, node1) < G2.number_of_edges(node2, node2):
+            return False
+    else:
+        if G1.number_of_edges(node1, node1) != G2.number_of_edges(node2, node2):
+            return False
 
     if _cut_PT(node1, node2, graph_params, state_params, PT):
         return False
 
     if isinstance(G1, nx.MultiGraph):
-        if not _consistent_PT(node1, node2, graph_params, state_params):
+        if not _consistent_PT(node1, node2, graph_params, state_params, PT):
             return False
 
     return True
@@ -107,7 +112,7 @@ def _cut_PT(u, v, graph_params, state_params, PT="iso"):
     for label, G1_nbh in u_labels_neighbors.items():
         G2_nbh = v_labels_neighbors[label]
 
-        if isinstance(G1, nx.MultiGraph):
+        if isinstance(G1, nx.MultiGraph) and PT != "ind":
             # Check for every neighbor in the neighborhood, if u-nbr1 has same edges as v-nbr2
             u_nbrs_edges = sorted(G1.number_of_edges(u, x) for x in G1_nbh)
             v_nbrs_edges = sorted(G2.number_of_edges(v, x) for x in G2_nbh)
@@ -125,11 +130,16 @@ def _cut_PT(u, v, graph_params, state_params, PT="iso"):
         elif PT == "sub":
             if len(T1.intersection(G1_nbh)) < len(T2.intersection(G2_nbh)):
                 return True
+        else:
+            if len(T1.intersection(G1_nbh)) < len(T2.intersection(G2_nbh)) or len(
+                T1_out.intersection(G1_nbh)
+            ) < len(T2_out.intersection(G2_nbh)):
+                return True
 
     return False
 
 
-def _consistent_PT(u, v, graph_params, state_params):
+def _consistent_PT(u, v, graph_params, state_params, PT="iso"):
     """Checks the consistency of extending the mapping using the current node pair.
 
     Parameters
@@ -169,17 +179,24 @@ def _consistent_PT(u, v, graph_params, state_params):
     G1, G2 = graph_params.G1, graph_params.G2
     mapping, reverse_mapping = state_params.mapping, state_params.reverse_mapping
 
-    for neighbor in G1[u]:
-        if neighbor in mapping:
-            if G1.number_of_edges(u, neighbor) != G2.number_of_edges(
-                v, mapping[neighbor]
-            ):
-                return False
+    if PT != "ind":
+        for neighbor in G1[u]:
+            if neighbor in mapping:
+                if G1.number_of_edges(u, neighbor) != G2.number_of_edges(
+                    v, mapping[neighbor]
+                ):
+                    return False
 
     for neighbor in G2[v]:
         if neighbor in reverse_mapping:
-            if G1.number_of_edges(u, reverse_mapping[neighbor]) != G2.number_of_edges(
-                v, neighbor
-            ):
-                return False
+            if PT == "ind":
+                if G1.number_of_edges(
+                    u, reverse_mapping[neighbor]
+                ) < G2.number_of_edges(v, neighbor):
+                    return False
+            else:
+                if G1.number_of_edges(
+                    u, reverse_mapping[neighbor]
+                ) != G2.number_of_edges(v, neighbor):
+                    return False
     return True
