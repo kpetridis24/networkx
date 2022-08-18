@@ -52,12 +52,13 @@ from networkx.algorithms.isomorphism.vf2pp_Di import vf2pp_mapping_Di
 
 G1 = nx.DiGraph()
 G1.add_edges_from([(0, 1), (3, 0), (0, 2), (1, 3), (2, 1), (1, 4), (4, 2)])
-G2 = nx.relabel_nodes(G1, mapping={0: "a", 1: "b", 2: "c", 3: "d", 4: "e"})
-# G1.add_edges_from([(1, 0), (2, 1), (1, 6), (0, 5), (3, 0), (4, 3), (3, 2), (2, 7), (7, 6), (4, 7), (5, 6), (4, 5)])
-# G2 = nx.relabel_nodes(G1, mapping={0: "h", 1: "i", 2: "k", 3: "l", 4: "m", 5: "g", 6: "h", 7: "z"})
-# G1.add_edges_from([(0, 1), (1, 2), (3, 0), (0, 2), (2, 3), (4, 3), (4, 2), (5, 2), (5, 7), (5, 6), (8, 7), (7, 9)])
-# G2 = nx.relabel_nodes(G1, mapping={0: "e", 1: "f", 2: "g", 3: "h", 4: "i", 5: "j", 6: "k", 7: "l", 8: "m", 9: "x"})
 
-print(nx.is_isomorphic(G1, G2))
-m = vf2pp_mapping_Di(G1, G2, node_labels=None)
-print(m)
+# G2 = nx.relabel_nodes(G1, mapping={0: "a", 1: "b", 2: "c", 3: "d", 4: "e"})
+# # G1.add_edges_from([(1, 0), (2, 1), (1, 6), (0, 5), (3, 0), (4, 3), (3, 2), (2, 7), (7, 6), (4, 7), (5, 6), (4, 5)])
+# # G2 = nx.relabel_nodes(G1, mapping={0: "h", 1: "i", 2: "k", 3: "l", 4: "m", 5: "g", 6: "h", 7: "z"})
+# # G1.add_edges_from([(0, 1), (1, 2), (3, 0), (0, 2), (2, 3), (4, 3), (4, 2), (5, 2), (5, 7), (5, 6), (8, 7), (7, 9)])
+# # G2 = nx.relabel_nodes(G1, mapping={0: "e", 1: "f", 2: "g", 3: "h", 4: "i", 5: "j", 6: "k", 7: "l", 8: "m", 9: "x"})
+#
+# print(nx.is_isomorphic(G1, G2))
+# m = vf2pp_mapping_Di(G1, G2, node_labels=None)
+# print(m)

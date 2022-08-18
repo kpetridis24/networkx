@@ -157,10 +157,11 @@ def _precheck_Di(G1, G2, G1_labels, G2_labels, node_labels=None, default_label=-
     if G1.order() != G2.order():
         return False
 
-    if sorted(d for n, d in G1.in_degree()) != sorted(d for n, d in G2.in_degree()):
-        return False
+    if G1.is_directed():
+        if sorted(d for n, d in G1.in_degree()) != sorted(d for n, d in G2.in_degree()):
+            return False
 
-    if sorted(d for n, d in G1.out_degree()) != sorted(d for n, d in G2.out_degree()):
+    if sorted(d for n, d in G1.degree()) != sorted(d for n, d in G2.degree()):
         return False
 
     G1_labels.update(G1.nodes(data=node_labels, default=default_label))

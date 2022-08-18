@@ -36,7 +36,7 @@ def _matching_order(graph_params):
     if not G1 and not G2:
         return {}
 
-    if isinstance(G1, nx.DiGraph):
+    if G1.is_directed():
         G1 = nx.Graph(G1)
         G2 = nx.Graph(G2)
 

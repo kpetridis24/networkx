@@ -22,7 +22,7 @@ from networkx.algorithms.isomorphism.vf2pp_helpers.state import (
     _update_state,
 )
 
-__all__ = ["vf2pp_mapping", "vf2pp_is_isomorphic"]
+__all__ = ["vf2pp_mapping", "vf2pp_is_isomorphic", "vf2pp_all_mappings"]
 
 
 def vf2pp_mapping(G1, G2, node_labels=None, default_label=None):
