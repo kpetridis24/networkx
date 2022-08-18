@@ -179,3 +179,107 @@ def _consistent_PT(u, v, graph_params, state_params):
             ):
                 return False
     return True
+
+
+def _feasibility_Di(node1, node2, graph_params, state_params):
+    G1, G2 = graph_params.G1, graph_params.G2
+    if G1.number_of_edges(node1, node1) != G2.number_of_edges(node2, node2):
+        return False
+
+    if _cut_PT_Di(node1, node2, graph_params, state_params):
+        return False
+
+    if isinstance(G1, nx.MultiGraph):
+        if not _consistent_PT_Di(node1, node2, graph_params, state_params):
+            return False
+
+    return True
+
+
+def _cut_PT_Di(u, v, graph_params, state_params):
+    G1, G2, G1_labels, G2_labels, _, _, _, _ = graph_params
+    _, _, T1, T1_out, T2, T2_out = state_params
+
+    u_labels_predecessors = nx.utils.groups({n1: G1_labels[n1] for n1 in G1.pred[u]})
+    u_labels_successors = nx.utils.groups({n1: G1_labels[n1] for n1 in G1.succ[u]})
+    v_labels_predecessors = nx.utils.groups({n2: G2_labels[n2] for n2 in G2.pred[v]})
+    v_labels_successors = nx.utils.groups({n2: G2_labels[n2] for n2 in G2.succ[v]})
+
+    # if the neighbors of u, do not have the same labels as those of v, NOT feasible.
+    if set(u_labels_predecessors.keys()) != set(v_labels_predecessors.keys()) or set(
+        u_labels_successors.keys()
+    ) != set(v_labels_successors.keys()):
+        return True
+
+    for label, G1_pred in u_labels_predecessors.items():
+        G2_pred = v_labels_predecessors[label]
+
+        if isinstance(G1, nx.MultiGraph):
+            # Check for every neighbor in the neighborhood, if u-nbr1 has same edges as v-nbr2
+            u_pred_edges = sorted(G1.number_of_edges(u, x) for x in G1_pred)
+            v_pred_edges = sorted(G2.number_of_edges(v, x) for x in G2_pred)
+            if any(
+                u_nbr_edges != v_nbr_edges
+                for u_nbr_edges, v_nbr_edges in zip(u_pred_edges, v_pred_edges)
+            ):
+                return True
+
+        if len(T1.intersection(G1_pred)) != len(T2.intersection(G2_pred)) or len(
+            T1_out.intersection(G1_pred)
+        ) != len(T2_out.intersection(G2_pred)):
+            return True
+
+    for label, G1_succ in u_labels_successors.items():
+        G2_succ = v_labels_successors[label]
+
+        if isinstance(G1, nx.MultiGraph):
+            # Check for every neighbor in the neighborhood, if u-nbr1 has same edges as v-nbr2
+            u_succ_edges = sorted(G1.number_of_edges(u, x) for x in G1_succ)
+            v_succ_edges = sorted(G2.number_of_edges(v, x) for x in G2_succ)
+            if any(
+                u_nbr_edges != v_nbr_edges
+                for u_nbr_edges, v_nbr_edges in zip(u_succ_edges, v_succ_edges)
+            ):
+                return True
+
+        if len(T1.intersection(G1_succ)) != len(T2.intersection(G2_succ)) or len(
+            T1_out.intersection(G1_succ)
+        ) != len(T2_out.intersection(G2_succ)):
+            return True
+
+    return False
+
+
+def _consistent_PT_Di(u, v, graph_params, state_params):
+    G1, G2 = graph_params.G1, graph_params.G2
+    mapping, reverse_mapping = state_params.mapping, state_params.reverse_mapping
+
+    for predecessor in G1.pred[u]:
+        if predecessor in mapping:
+            if G1.number_of_edges(u, predecessor) != G2.number_of_edges(
+                v, mapping[predecessor]
+            ):
+                return False
+
+    for predecessor in G2.pred[v]:
+        if predecessor in reverse_mapping:
+            if G1.number_of_edges(
+                u, reverse_mapping[predecessor]
+            ) != G2.number_of_edges(v, predecessor):
+                return False
+
+    for successor in G1.succ[u]:
+        if successor in mapping:
+            if G1.number_of_edges(u, successor) != G2.number_of_edges(
+                v, mapping[successor]
+            ):
+                return False
+
+    for successor in G2.succ[v]:
+        if successor in reverse_mapping:
+            if G1.number_of_edges(u, reverse_mapping[successor]) != G2.number_of_edges(
+                v, successor
+            ):
+                return False
+
+    return True

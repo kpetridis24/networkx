@@ -1,4 +1,7 @@
-from networkx.algorithms.isomorphism.vf2pp_helpers.candidates import _find_candidates
+from networkx.algorithms.isomorphism.vf2pp_helpers.candidates import (
+    _find_candidates,
+    _find_candidates_Di,
+)
 
 
 def _update_Tinout(new_node1, new_node2, graph_params, state_params):
@@ -41,7 +44,7 @@ def _update_Tinout(new_node1, new_node2, graph_params, state_params):
         T1_out, T2_out: set
             Ti_out contains all the nodes from Gi, that are neither in the mapping nor in Ti
     """
-    G1, G2, _, _, _, _, _ = graph_params
+    G1, G2 = graph_params.G1, graph_params.G2
     mapping, reverse_mapping, T1, T1_out, T2, T2_out = state_params
 
     uncovered_neighbors_G1 = {nbr for nbr in G1[new_node1] if nbr not in mapping}
@@ -95,7 +98,7 @@ def _restore_Tinout(popped_node1, popped_node2, graph_params, state_params):
             Ti_out contains all the nodes from Gi, that are neither in the mapping nor in Ti
     """
     # If the node we want to remove from the mapping, has at least one covered neighbor, add it to T1.
-    G1, G2, _, _, _, _, _ = graph_params
+    G1, G2 = graph_params.G1, graph_params.G2
     mapping, reverse_mapping, T1, T1_out, T2, T2_out = state_params
 
     is_added = False
@@ -180,6 +183,18 @@ def _update_state(
 
     next_node = order[matching_node]
     candidates = _find_candidates(next_node, graph_params, state_params)
+    stack.append((next_node, iter(candidates)))
+
+
+def _update_state_Di(
+    node, candidate, matching_node, order, stack, graph_params, state_params
+):
+    state_params.mapping.update({node: candidate})
+    state_params.reverse_mapping.update({candidate: node})
+    _update_Tinout(node, candidate, graph_params, state_params)
+
+    next_node = order[matching_node]
+    candidates = _find_candidates_Di(next_node, graph_params, state_params)
     stack.append((next_node, iter(candidates)))
 
 

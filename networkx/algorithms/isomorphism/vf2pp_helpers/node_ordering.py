@@ -27,9 +27,18 @@ def _matching_order(graph_params):
     node_order: list
         The ordering of the nodes.
     """
-    G1, G2, G1_labels, _, _, nodes_of_G2Labels, _ = graph_params
+    G1, G2, G1_labels, nodes_of_G2Labels = (
+        graph_params.G1,
+        graph_params.G2,
+        graph_params.G1_labels,
+        graph_params.nodes_of_G2Labels,
+    )
     if not G1 and not G2:
         return {}
+
+    if isinstance(G1, nx.DiGraph):
+        G1 = nx.Graph(G1)
+        G2 = nx.Graph(G2)
 
     V1_unordered = set(G1.nodes())
     label_rarity = {label: len(nodes) for label, nodes in nodes_of_G2Labels.items()}
