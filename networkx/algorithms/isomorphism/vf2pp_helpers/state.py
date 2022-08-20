@@ -1,7 +1,4 @@
-from networkx.algorithms.isomorphism.vf2pp_helpers.candidates import (
-    _find_candidates,
-    _find_candidates_Di,
-)
+from networkx.algorithms.isomorphism.vf2pp_helpers.candidates import _find_candidates
 
 
 def _update_Tinout(new_node1, new_node2, graph_params, state_params):
@@ -183,18 +180,6 @@ def _update_state(
 
     next_node = order[matching_node]
     candidates = _find_candidates(next_node, graph_params, state_params)
-    stack.append((next_node, iter(candidates)))
-
-
-def _update_state_Di(
-    node, candidate, matching_node, order, stack, graph_params, state_params
-):
-    state_params.mapping.update({node: candidate})
-    state_params.reverse_mapping.update({candidate: node})
-    _update_Tinout(node, candidate, graph_params, state_params)
-
-    next_node = order[matching_node]
-    candidates = _find_candidates_Di(next_node, graph_params, state_params)
     stack.append((next_node, iter(candidates)))
 
 

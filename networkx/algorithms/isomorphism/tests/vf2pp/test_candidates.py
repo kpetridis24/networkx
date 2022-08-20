@@ -54,6 +54,7 @@ class TestCandidateSelection:
             "nodes_of_G1Labels",
             "nodes_of_G2Labels",
             "G2_nodes_of_degree",
+            "G2_nodes_of_in_degree",
         ],
     )
     StateParameters = collections.namedtuple(
@@ -81,6 +82,7 @@ class TestCandidateSelection:
             nx.utils.groups(G1_labels),
             nx.utils.groups(G2_labels),
             nx.utils.groups({node: degree for node, degree in self.G2.degree()}),
+            dict(),
         )
         state_params = self.StateParameters(dict(), dict(), None, None, None, None)
 
@@ -116,6 +118,7 @@ class TestCandidateSelection:
             nx.utils.groups(G1_labels),
             nx.utils.groups(G2_labels),
             nx.utils.groups({node: degree for node, degree in self.G2.degree()}),
+            None,
         )
         state_params = self.StateParameters(dict(), dict(), None, None, None, None)
 

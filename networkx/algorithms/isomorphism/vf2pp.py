@@ -68,7 +68,9 @@ def vf2pp_is_isomorphic(G1, G2, node_labels=None, default_label=None):
     -------
     True if the two graphs are isomorphic. False otherwise.
     """
-    return True and not (not vf2pp_mapping(G1, G2, node_labels, default_label))
+    if vf2pp_mapping(G1, G2, node_labels, default_label):
+        return True
+    return False
 
 
 def vf2pp_all_mappings(G1, G2, node_labels=None, default_label=None):
@@ -159,6 +161,10 @@ def _precheck(G1, G2, G1_labels, G2_labels, node_labels=None, default_label=-1):
     if sorted(d for n, d in G1.degree()) != sorted(d for n, d in G2.degree()):
         return False
 
+    if G1.is_directed():
+        if sorted(d for n, d in G1.in_degree()) != sorted(d for n, d in G2.in_degree()):
+            return False
+
     G1_labels.update(G1.nodes(data=node_labels, default=default_label))
     G2_labels.update(G2.nodes(data=node_labels, default=default_label))
 
@@ -220,6 +226,7 @@ def _initialize_VF2pp(G1, G2, G1_labels, G2_labels):
             "nodes_of_G1Labels",
             "nodes_of_G2Labels",
             "G2_nodes_of_degree",
+            "G2_nodes_of_in_degree",
         ],
     )
     StateParameters = collections.namedtuple(
@@ -235,7 +242,13 @@ def _initialize_VF2pp(G1, G2, G1_labels, G2_labels):
         nx.utils.groups(G1_labels),
         nx.utils.groups(G2_labels),
         nx.utils.groups({node: degree for node, degree in G2.degree()}),
+        dict(),
     )
+
+    if G1.is_directed():
+        graph_params.G2_nodes_of_in_degree.update(
+            nx.utils.groups({node: degree for node, degree in G2.in_degree()})
+        )
 
     state_params = StateParameters(
         dict(), dict(), set(), set(G1.nodes()), set(), set(G2.nodes())

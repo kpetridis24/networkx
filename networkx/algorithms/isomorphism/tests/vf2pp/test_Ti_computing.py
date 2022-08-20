@@ -31,6 +31,7 @@ class TestTinoutUpdating:
             "nodes_of_G1Labels",
             "nodes_of_G2Labels",
             "G2_nodes_of_degree",
+            "G2_nodes_of_in_degree",
         ],
     )
     StateParameters = collections.namedtuple(
@@ -67,7 +68,7 @@ class TestTinoutUpdating:
         assert correct_T2_out == self.T2_out
 
         graph_params = self.GraphParameters(
-            self.G, self.G, None, None, None, None, None
+            self.G, self.G, None, None, None, None, None, None
         )
         state_params = self.StateParameters(
             self.mapping,
@@ -101,7 +102,7 @@ class TestTinoutUpdating:
         self.T1, self.T2, self.T1_out, self.T2_out = self.compute_Ti(self.G, self.G)
 
         graph_params = self.GraphParameters(
-            self.G, self.G, None, None, None, None, None
+            self.G, self.G, None, None, None, None, None, None
         )
         state_params = self.StateParameters(
             self.mapping,
