@@ -59,12 +59,15 @@ def _find_candidates(u, graph_params, state_params):
             for node in G2.nodes()
             if node not in reverse_mapping
             and all(nbr2 not in reverse_mapping for nbr2 in nx.all_neighbors(G2, node))
-        }.intersection(
-            *[nodes_of_G2Labels[G1_labels[u]], G2_nodes_of_degree[G1.degree[u]]]
-        )
+        }.intersection(*[nodes_of_G2Labels[G1_labels[u]]])
         if G1.is_directed():
-            return candidates.intersection(G2_nodes_of_in_degree[G1.in_degree[u]])
-        return candidates
+            return candidates.intersection(
+                *[
+                    G2_nodes_of_degree[G1.out_degree[u]],
+                    G2_nodes_of_in_degree[G1.in_degree[u]],
+                ]
+            )
+        return candidates.intersection(*[G2_nodes_of_degree[G1.degree[u]]])
 
     nbr1 = covered_neighbors[0]
     common_nodes = {nbr2 for nbr2 in nx.all_neighbors(G2, mapping[nbr1])}
@@ -74,7 +77,12 @@ def _find_candidates(u, graph_params, state_params):
 
     candidates = {
         node for node in common_nodes if node not in reverse_mapping
-    }.intersection(*[nodes_of_G2Labels[G1_labels[u]], G2_nodes_of_degree[G1.degree[u]]])
+    }.intersection(*[nodes_of_G2Labels[G1_labels[u]]])
     if G1.is_directed():
-        return candidates.intersection(G2_nodes_of_in_degree[G1.in_degree[u]])
-    return candidates
+        return candidates.intersection(
+            *[
+                G2_nodes_of_degree[G1.out_degree[u]],
+                G2_nodes_of_in_degree[G1.in_degree[u]],
+            ]
+        )
+    return candidates.intersection(*[G2_nodes_of_degree[G1.degree[u]]])

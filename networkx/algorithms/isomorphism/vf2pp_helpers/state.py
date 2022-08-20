@@ -1,3 +1,4 @@
+import networkx as nx
 from networkx.algorithms.isomorphism.vf2pp_helpers.candidates import _find_candidates
 
 
@@ -44,9 +45,11 @@ def _update_Tinout(new_node1, new_node2, graph_params, state_params):
     G1, G2 = graph_params.G1, graph_params.G2
     mapping, reverse_mapping, T1, T1_out, T2, T2_out = state_params
 
-    uncovered_neighbors_G1 = {nbr for nbr in G1[new_node1] if nbr not in mapping}
+    uncovered_neighbors_G1 = {
+        nbr for nbr in nx.all_neighbors(G1, new_node1) if nbr not in mapping
+    }
     uncovered_neighbors_G2 = {
-        nbr for nbr in G2[new_node2] if nbr not in reverse_mapping
+        nbr for nbr in nx.all_neighbors(G2, new_node2) if nbr not in reverse_mapping
     }
 
     # Add the uncovered neighbors of node1 and node2 in T1 and T2 respectively
@@ -99,14 +102,14 @@ def _restore_Tinout(popped_node1, popped_node2, graph_params, state_params):
     mapping, reverse_mapping, T1, T1_out, T2, T2_out = state_params
 
     is_added = False
-    for nbr in G1[popped_node1]:
+    for nbr in nx.all_neighbors(G1, popped_node1):
         if nbr in mapping:
             T1.add(
                 popped_node1
             )  # if a neighbor of the excluded node1 is in the mapping, keep node1 in T1
             is_added = True
         else:  # check if its neighbor has another connection with a covered node. If not, only then exclude it from T1
-            if any(nbr2 in mapping for nbr2 in G1[nbr]):
+            if any(nbr2 in mapping for nbr2 in nx.all_neighbors(G1, nbr)):
                 continue
             T1.discard(nbr)
             T1_out.add(nbr)
@@ -116,12 +119,12 @@ def _restore_Tinout(popped_node1, popped_node2, graph_params, state_params):
         T1_out.add(popped_node1)
 
     is_added = False
-    for nbr in G2[popped_node2]:
+    for nbr in nx.all_neighbors(G2, popped_node2):
         if nbr in reverse_mapping:
             T2.add(popped_node2)
             is_added = True
         else:
-            if any(nbr2 in reverse_mapping for nbr2 in G2[nbr]):
+            if any(nbr2 in reverse_mapping for nbr2 in nx.all_neighbors(G2, nbr)):
                 continue
             T2.discard(nbr)
             T2_out.add(nbr)

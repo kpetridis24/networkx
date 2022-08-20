@@ -89,7 +89,7 @@ def vf2pp_all_mappings(G1, G2, node_labels=None, default_label=None):
         The default label for nodes that have no label attribute value.
     """
     G1_labels, G2_labels = {}, {}
-    if not G1 and not G2:
+    if G1.number_of_nodes() == 0 or G2.number_of_nodes() == 0:
         return False
     if not _precheck(G1, G2, G1_labels, G2_labels, node_labels, default_label):
         return False
@@ -97,6 +97,7 @@ def vf2pp_all_mappings(G1, G2, node_labels=None, default_label=None):
     graph_params, state_params, node_order, stack = _initialize_VF2pp(
         G1, G2, G1_labels, G2_labels
     )
+
     matching_node = 1
     mapping = state_params.mapping
 
@@ -158,11 +159,16 @@ def _precheck(G1, G2, G1_labels, G2_labels, node_labels=None, default_label=-1):
     """
     if G1.order() != G2.order():
         return False
-    if sorted(d for n, d in G1.degree()) != sorted(d for n, d in G2.degree()):
-        return False
 
     if G1.is_directed():
+        if sorted(d for n, d in G1.out_degree()) != sorted(
+            d for n, d in G2.out_degree()
+        ):
+            return False
         if sorted(d for n, d in G1.in_degree()) != sorted(d for n, d in G2.in_degree()):
+            return False
+    else:
+        if sorted(d for n, d in G1.degree()) != sorted(d for n, d in G2.degree()):
             return False
 
     G1_labels.update(G1.nodes(data=node_labels, default=default_label))
@@ -234,20 +240,27 @@ def _initialize_VF2pp(G1, G2, G1_labels, G2_labels):
         ["mapping", "reverse_mapping", "T1", "T1_out", "T2", "T2_out"],
     )
 
-    graph_params = GraphParameters(
-        G1,
-        G2,
-        G1_labels,
-        G2_labels,
-        nx.utils.groups(G1_labels),
-        nx.utils.groups(G2_labels),
-        nx.utils.groups({node: degree for node, degree in G2.degree()}),
-        dict(),
-    )
-
-    if G1.is_directed():
-        graph_params.G2_nodes_of_in_degree.update(
-            nx.utils.groups({node: degree for node, degree in G2.in_degree()})
+    if not G1.is_directed():
+        graph_params = GraphParameters(
+            G1,
+            G2,
+            G1_labels,
+            G2_labels,
+            nx.utils.groups(G1_labels),
+            nx.utils.groups(G2_labels),
+            nx.utils.groups({node: degree for node, degree in G2.degree()}),
+            dict(),
+        )
+    else:
+        graph_params = GraphParameters(
+            G1,
+            G2,
+            G1_labels,
+            G2_labels,
+            nx.utils.groups(G1_labels),
+            nx.utils.groups(G2_labels),
+            nx.utils.groups({node: degree for node, degree in G2.out_degree()}),
+            nx.utils.groups({node: degree for node, degree in G2.in_degree()}),
         )
 
     state_params = StateParameters(
@@ -258,6 +271,7 @@ def _initialize_VF2pp(G1, G2, G1_labels, G2_labels):
 
     starting_node = node_order[0]
     candidates = _find_candidates(starting_node, graph_params, state_params)
+    # print(f"candidates of {starting_node}: {candidates}")
     stack = [(starting_node, iter(candidates))]
 
     return graph_params, state_params, node_order, stack

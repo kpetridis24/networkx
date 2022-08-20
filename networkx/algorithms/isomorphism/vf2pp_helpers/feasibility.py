@@ -48,6 +48,7 @@ def _feasibility(node1, node2, graph_params, state_params):
         return False
 
     if _cut_PT(node1, node2, graph_params, state_params):
+        print(f"{node1, node2} failed")
         return False
 
     if G1.is_multigraph():
@@ -109,8 +110,12 @@ def _cut_PT(u, v, graph_params, state_params):
         if set(u_labels_predecessors.keys()) != set(v_labels_predecessors.keys()):
             return True
 
-    u_labels_neighbors = nx.utils.groups({n1: G1_labels[n1] for n1 in G1[u]})
-    v_labels_neighbors = nx.utils.groups({n2: G2_labels[n2] for n2 in G2[v]})
+    u_labels_neighbors = nx.utils.groups(
+        {n1: G1_labels[n1] for n1 in nx.all_neighbors(G1, u)}
+    )
+    v_labels_neighbors = nx.utils.groups(
+        {n2: G2_labels[n2] for n2 in nx.all_neighbors(G2, v)}
+    )
 
     # if the neighbors of u, do not have the same labels as those of v, NOT feasible.
     if set(u_labels_neighbors.keys()) != set(v_labels_neighbors.keys()):
@@ -136,7 +141,7 @@ def _cut_PT(u, v, graph_params, state_params):
 
     if not G1.is_directed():
         return False
-
+    print(f"{u, v} reached here")
     for label, G1_pred in u_labels_predecessors.items():
         G2_pred = v_labels_predecessors[label]
 
@@ -198,14 +203,14 @@ def _consistent_PT(u, v, graph_params, state_params):
     G1, G2 = graph_params.G1, graph_params.G2
     mapping, reverse_mapping = state_params.mapping, state_params.reverse_mapping
 
-    for neighbor in G1[u]:
+    for neighbor in nx.all_neighbors(G1, u):
         if neighbor in mapping:
             if G1.number_of_edges(u, neighbor) != G2.number_of_edges(
                 v, mapping[neighbor]
             ):
                 return False
 
-    for neighbor in G2[v]:
+    for neighbor in nx.all_neighbors(G2, v):
         if neighbor in reverse_mapping:
             if G1.number_of_edges(u, reverse_mapping[neighbor]) != G2.number_of_edges(
                 v, neighbor

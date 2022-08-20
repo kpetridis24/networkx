@@ -619,3 +619,83 @@ class TestGraphISOVF2pp:
 
         m = vf2pp_mapping(G1, G2, node_labels="label")
         assert m
+
+
+class TestDiGraphISOVF2pp:
+    def test_both_graphs_empty(self):
+        G = nx.DiGraph()
+        H = nx.DiGraph()
+
+        m = vf2pp_mapping(G, H, None)
+        assert m is None
+
+    def test_first_graph_empty(self):
+        G = nx.DiGraph()
+        H = nx.DiGraph([(0, 1)])
+        m = vf2pp_mapping(G, H, None)
+        assert m is None
+
+    def test_second_graph_empty(self):
+        G = nx.DiGraph([(0, 1)])
+        H = nx.DiGraph()
+        m = vf2pp_mapping(G, H, None)
+        assert m is None
+
+    def test_wiki_graph_no_labels(self):
+        G1 = nx.DiGraph(
+            [
+                [1, 2],
+                [2, 3],
+                [3, 4],
+                [4, 1],
+                [5, 6],
+                [6, 7],
+                [7, 8],
+                [8, 5],
+                [1, 5],
+                [2, 6],
+                [3, 7],
+                [4, 8],
+            ]
+        )
+        G2 = nx.DiGraph(
+            [
+                ["a", "g"],
+                ["a", "h"],
+                ["i", "a"],
+                ["g", "b"],
+                ["h", "b"],
+                ["b", "j"],
+                ["c", "g"],
+                ["i", "c"],
+                ["j", "c"],
+                ["h", "d"],
+                ["d", "i"],
+                ["d", "j"],
+            ]
+        )
+
+        assert nx.is_isomorphic(G1, G2)
+        m = vf2pp_mapping(G1, G2, node_labels=None)
+        assert m
+
+        # Change the direction of an edge in one graph
+        G1.remove_edge(5, 6)
+        G1.add_edge(6, 5)
+        m = vf2pp_mapping(G1, G2, node_labels=None)
+        assert m is None
+
+        # Do the same in G2 but in different edge
+        G2.remove_edge("g", "b")
+        G2.add_edge("b", "g")
+        m = vf2pp_mapping(G1, G2, node_labels=None)
+        assert m
+
+        # Add new node in both graphs but connect with different direction
+        G1.add_node(100)
+        G2.add_node("X")
+        G1.add_edge(100, 1)
+        G2.add_edge("a", "X")
+
+        m = vf2pp_mapping(G1, G2, node_labels=None)
+        assert m is None
