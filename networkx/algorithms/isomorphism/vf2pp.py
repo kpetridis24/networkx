@@ -271,7 +271,6 @@ def _initialize_VF2pp(G1, G2, G1_labels, G2_labels):
 
     starting_node = node_order[0]
     candidates = _find_candidates(starting_node, graph_params, state_params)
-    # print(f"candidates of {starting_node}: {candidates}")
     stack = [(starting_node, iter(candidates))]
 
     return graph_params, state_params, node_order, stack

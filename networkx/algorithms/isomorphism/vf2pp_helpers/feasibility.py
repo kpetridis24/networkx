@@ -48,7 +48,6 @@ def _feasibility(node1, node2, graph_params, state_params):
         return False
 
     if _cut_PT(node1, node2, graph_params, state_params):
-        print(f"{node1, node2} failed")
         return False
 
     if G1.is_multigraph():
@@ -141,7 +140,7 @@ def _cut_PT(u, v, graph_params, state_params):
 
     if not G1.is_directed():
         return False
-    print(f"{u, v} reached here")
+
     for label, G1_pred in u_labels_predecessors.items():
         G2_pred = v_labels_predecessors[label]
 
