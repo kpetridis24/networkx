@@ -64,7 +64,13 @@ from .vf2pp_helpers.feasibility import _feasibility
 from .vf2pp_helpers.node_ordering import _matching_order
 from .vf2pp_helpers.state import _restore_Tinout, _restore_Tinout_Di, _update_Tinout
 
-__all__ = ["vf2pp_isomorphism", "vf2pp_is_isomorphic", "vf2pp_all_isomorphisms"]
+__all__ = [
+    "vf2pp_monomorphism",
+    "vf2pp_is_monomorphic",
+    "vf2pp_isomorphism",
+    "vf2pp_is_isomorphic",
+    "vf2pp_all_isomorphisms",
+]
 
 _GraphParameters = collections.namedtuple(
     "_GraphParameters",
@@ -94,6 +100,22 @@ _StateParameters = collections.namedtuple(
         "T2_tilde_in",
     ],
 )
+
+
+def vf2pp_monomorphism(G1, G2, node_label=None, default_label=None):
+    try:
+        mapping = next(
+            vf2pp_all_isomorphisms(G1, G2, node_label, default_label, PT="mono")
+        )
+        return mapping
+    except StopIteration:
+        return None
+
+
+def vf2pp_is_monomorphic(G1, G2, node_label=None, default_label=None):
+    if vf2pp_monomorphism(G1, G2, node_label, default_label) is not None:
+        return True
+    return False
 
 
 def vf2pp_isomorphism(G1, G2, node_label=None, default_label=None):
@@ -154,7 +176,7 @@ def vf2pp_is_isomorphic(G1, G2, node_label=None, default_label=None):
     return False
 
 
-def vf2pp_all_isomorphisms(G1, G2, node_label=None, default_label=-1):
+def vf2pp_all_isomorphisms(G1, G2, node_label=None, default_label=-1, PT="iso"):
     """Yields all the possible mappings between G1 and G2.
 
     Parameters
@@ -202,10 +224,14 @@ def vf2pp_all_isomorphisms(G1, G2, node_label=None, default_label=-1):
         restore_Tinout = _restore_Tinout_Di
 
     # Check that both graphs have the same number of nodes and degree sequence
-    if G1.order() != G2.order():
-        return False
-    if sorted(G1_degree.values()) != sorted(G2_degree.values()):
-        return False
+    if PT == "iso":
+        if G1.order() != G2.order():
+            return False
+        if sorted(G1_degree.values()) != sorted(G2_degree.values()):
+            return False
+    elif PT == "mono":
+        if G1.order() >= G2.order():
+            return False
 
     # Initialize parameters and cache necessary information about degree and labels
     graph_params, state_params = _initialize_parameters(
@@ -213,7 +239,7 @@ def vf2pp_all_isomorphisms(G1, G2, node_label=None, default_label=-1):
     )
 
     # Check if G1 and G2 have the same labels, and that number of nodes per label is equal between the two graphs
-    if not _precheck_label_properties(graph_params):
+    if not _precheck_label_properties(graph_params, PT):
         return False
 
     # Calculate the optimal node ordering
@@ -222,7 +248,7 @@ def vf2pp_all_isomorphisms(G1, G2, node_label=None, default_label=-1):
     # Initialize the stack
     stack = []
     candidates = iter(
-        find_candidates(node_order[0], graph_params, state_params, G1_degree)
+        find_candidates(node_order[0], graph_params, state_params, G1_degree, PT)
     )
     stack.append((node_order[0], candidates))
 
@@ -250,9 +276,9 @@ def vf2pp_all_isomorphisms(G1, G2, node_label=None, default_label=-1):
                 restore_Tinout(popped_node1, popped_node2, graph_params, state_params)
             continue
 
-        if _feasibility(current_node, candidate, graph_params, state_params):
+        if _feasibility(current_node, candidate, graph_params, state_params, PT):
             # Terminate if mapping is extended to its full
-            if len(mapping) == G2.number_of_nodes() - 1:
+            if len(mapping) == G1.number_of_nodes() - 1:
                 cp_mapping = mapping.copy()
                 cp_mapping[current_node] = candidate
                 yield cp_mapping
@@ -265,20 +291,29 @@ def vf2pp_all_isomorphisms(G1, G2, node_label=None, default_label=-1):
             # Append the next node and its candidates to the stack
             candidates = iter(
                 find_candidates(
-                    node_order[matching_node], graph_params, state_params, G1_degree
+                    node_order[matching_node], graph_params, state_params, G1_degree, PT
                 )
             )
             stack.append((node_order[matching_node], candidates))
             matching_node += 1
 
 
-def _precheck_label_properties(graph_params):
+def _precheck_label_properties(graph_params, PT="iso"):
     G1, G2, G1_labels, G2_labels, nodes_of_G1Labels, nodes_of_G2Labels, _ = graph_params
-    if any(
-        label not in nodes_of_G1Labels or len(nodes_of_G1Labels[label]) != len(nodes)
-        for label, nodes in nodes_of_G2Labels.items()
-    ):
-        return False
+
+    if PT == "iso":
+        if any(
+            label not in nodes_of_G1Labels
+            or len(nodes_of_G1Labels[label]) != len(nodes)
+            for label, nodes in nodes_of_G2Labels.items()
+        ):
+            return False
+    elif PT == "mono":
+        if any(
+            label not in nodes_of_G2Labels
+            for label, nodes in nx.utils.groups(G1_labels).items()
+        ):
+            return False
     return True
 
 

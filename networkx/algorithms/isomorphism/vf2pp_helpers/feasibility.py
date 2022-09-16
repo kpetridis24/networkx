@@ -1,7 +1,7 @@
 import networkx as nx
 
 
-def _feasibility(node1, node2, graph_params, state_params):
+def _feasibility(node1, node2, graph_params, state_params, PT="iso"):
     """Given a candidate pair of nodes u and v from G1 and G2 respectively, checks if it's feasible to extend the
     mapping, i.e. if u and v can be matched.
 
@@ -43,9 +43,13 @@ def _feasibility(node1, node2, graph_params, state_params):
     -------
     True if all checks are successful, False otherwise.
     """
-    G1 = graph_params.G1
+    G1, G2 = graph_params.G1, graph_params.G2
 
-    if _cut_PT(node1, node2, graph_params, state_params):
+    # If the node from G2 is disconnected, it matches to every other node from G1, for the MONO case.
+    if PT == "mono" and G1.degree[node1] == 0:
+        return True
+
+    if _cut_PT(node1, node2, graph_params, state_params, PT):
         return False
 
     if G1.is_multigraph():
@@ -55,7 +59,7 @@ def _feasibility(node1, node2, graph_params, state_params):
     return True
 
 
-def _cut_PT(u, v, graph_params, state_params):
+def _cut_PT(u, v, graph_params, state_params, PT="iso"):
     """Implements the cutting rules for the ISO problem.
 
     Parameters
@@ -138,14 +142,22 @@ def _cut_PT(u, v, graph_params, state_params):
             ):
                 return True
 
-        if len(T1.intersection(G1_nbh)) != len(T2.intersection(G2_nbh)):
-            return True
-        if len(T1_tilde.intersection(G1_nbh)) != len(T2_tilde.intersection(G2_nbh)):
-            return True
-        if G1.is_directed() and len(T1_in.intersection(G1_nbh)) != len(
-            T2_in.intersection(G2_nbh)
-        ):
-            return True
+        if PT == "iso":
+            if len(T1.intersection(G1_nbh)) != len(T2.intersection(G2_nbh)):
+                return True
+            if len(T1_tilde.intersection(G1_nbh)) != len(T2_tilde.intersection(G2_nbh)):
+                return True
+            if G1.is_directed() and len(T1_in.intersection(G1_nbh)) != len(
+                T2_in.intersection(G2_nbh)
+            ):
+                return True
+        elif PT == "mono":
+            if len(T1.intersection(G1_nbh)) > len(T2.intersection(G2_nbh)):
+                return True
+            if G1.is_directed() and len(T1_in.intersection(G1_nbh)) > len(
+                T2_in.intersection(G2_nbh)
+            ):
+                return True
 
     if not G1.is_directed():
         return False
@@ -163,12 +175,20 @@ def _cut_PT(u, v, graph_params, state_params):
             ):
                 return True
 
-        if len(T1.intersection(G1_pred)) != len(T2.intersection(G2_pred)):
-            return True
-        if len(T1_tilde.intersection(G1_pred)) != len(T2_tilde.intersection(G2_pred)):
-            return True
-        if len(T1_in.intersection(G1_pred)) != len(T2_in.intersection(G2_pred)):
-            return True
+        if PT == "iso":
+            if len(T1.intersection(G1_pred)) != len(T2.intersection(G2_pred)):
+                return True
+            if len(T1_tilde.intersection(G1_pred)) != len(
+                T2_tilde.intersection(G2_pred)
+            ):
+                return True
+            if len(T1_in.intersection(G1_pred)) != len(T2_in.intersection(G2_pred)):
+                return True
+        elif PT == "mono":
+            if len(T1.intersection(G1_pred)) > len(T2.intersection(G2_pred)):
+                return True
+            if len(T1_in.intersection(G1_pred)) > len(T2_in.intersection(G2_pred)):
+                return True
 
     return False
 
